@@ -9,7 +9,7 @@ from sympy.polys.polytools import Poly
     coefficients2=st.lists(st.integers()),
     coefficients3=st.lists(st.integers()),
 )
-def test_gcd_hypothesis(coefficients1, coefficients2, coefficients3):
+def test_gcd(coefficients1, coefficients2, coefficients3):
     f = Poly(coefficients1, x, domain="ZZ")
     g = Poly(coefficients2, x, domain="ZZ")
     r = Poly(coefficients3, x, domain="ZZ")
@@ -29,7 +29,7 @@ def test_gcd_hypothesis(coefficients1, coefficients2, coefficients3):
     coefficients1=st.lists(st.integers()),
     coefficients2=st.lists(st.integers()).filter(lambda x: any(x)),
 )
-def test_poly_hypothesis(coefficients1, coefficients2):
+def test_division(coefficients1, coefficients2):
     # Integer case
     f_z = Poly(coefficients1, x, domain="ZZ")
     g_z = Poly(coefficients2, x, domain="ZZ")
@@ -41,3 +41,47 @@ def test_poly_hypothesis(coefficients1, coefficients2):
     g_q = Poly(coefficients2, x, domain="QQ")
     remainder_q = f_q.rem(g_q)
     assert g_q.degree() >= remainder_q.degree() or remainder_q.degree() == 0
+
+
+@given(
+    coefficients1=st.lists(st.integers()),
+    coefficients2=st.lists(st.integers()),
+)
+def test_multiplication(coefficients1, coefficients2):
+    f = Poly(coefficients1, x, domain="ZZ")
+    g = Poly(coefficients2, x, domain="ZZ")
+    h = f * g
+    assert h.degree() == f.degree() + g.degree()
+    assert h.LC() == f.LC() * g.LC()
+
+
+@given(
+    coefficients1=st.lists(st.integers()),
+    coefficients2=st.lists(st.integers()),
+)
+def test_addition(coefficients1, coefficients2):
+    f = Poly(coefficients1, x, domain="ZZ")
+    g = Poly(coefficients2, x, domain="ZZ")
+    h = f + g
+    assert h.degree() == max(f.degree(), g.degree())
+
+
+@given(
+    coefficients1=st.lists(st.integers()),
+    coefficients2=st.lists(st.integers()).filter(lambda x: any(x)),
+)
+def test_lcm(coefficients1, coefficients2):
+    f = Poly(coefficients1, x, domain="ZZ")
+    g = Poly(coefficients2, x, domain="ZZ")
+    assert f.lcm(g) == (f * g).quo(f.gcd(g))
+
+
+@given(
+    coefficients=st.lists(st.integers()),
+    value=st.integers(),
+)
+def test_dispersion(coefficients, value):
+    f = Poly(coefficients, x, domain="ZZ")
+    g = Poly([value], x, domain="ZZ")
+    assert f.dispersion() == f.dispersion(f)
+    assert f.dispersion(g) == 0
