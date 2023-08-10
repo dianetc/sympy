@@ -1,13 +1,21 @@
-from hypothesis import given
+from hypothesis import given, assume
 from hypothesis import strategies as st
 from sympy.abc import x
 from sympy.polys.polytools import Poly
 
 
+@st.composite
+def coeffecients(draw: st.DrawFn):
+    l = draw(st.lists(st.integers()))
+    if len(l) > 0:
+        assume(l[0] != 0)
+    return l
+
+
 @given(
-    coefficients1=st.lists(st.integers()),
-    coefficients2=st.lists(st.integers()),
-    coefficients3=st.lists(st.integers()),
+    coefficients1=coeffecients(),
+    coefficients2=coeffecients(),
+    coefficients3=coeffecients(),
 )
 def test_gcd(coefficients1, coefficients2, coefficients3):
     f = Poly(coefficients1, x, domain="ZZ")
@@ -26,8 +34,8 @@ def test_gcd(coefficients1, coefficients2, coefficients3):
 
 
 @given(
-    coefficients1=st.lists(st.integers()),
-    coefficients2=st.lists(st.integers()).filter(lambda x: any(x)),
+    coefficients1=coeffecients(),
+    coefficients2=st.lists(st.integers().filter(lambda n: n != 0), min_size=1),
 )
 def test_division(coefficients1, coefficients2):
     # Integer case
@@ -44,8 +52,8 @@ def test_division(coefficients1, coefficients2):
 
 
 @given(
-    coefficients1=st.lists(st.integers()),
-    coefficients2=st.lists(st.integers()),
+    coefficients1=coeffecients(),
+    coefficients2=coeffecients(),
 )
 def test_multiplication(coefficients1, coefficients2):
     f = Poly(coefficients1, x, domain="ZZ")
@@ -56,8 +64,8 @@ def test_multiplication(coefficients1, coefficients2):
 
 
 @given(
-    coefficients1=st.lists(st.integers()),
-    coefficients2=st.lists(st.integers()),
+    coefficients1=coeffecients(),
+    coefficients2=coeffecients(),
 )
 def test_addition(coefficients1, coefficients2):
     f = Poly(coefficients1, x, domain="ZZ")
@@ -67,8 +75,8 @@ def test_addition(coefficients1, coefficients2):
 
 
 @given(
-    coefficients1=st.lists(st.integers()),
-    coefficients2=st.lists(st.integers()).filter(lambda x: any(x)),
+    coefficients1=coeffecients(),
+    coefficients2=st.lists(st.integers().filter(lambda n: n != 0), min_size=1),
 )
 def test_lcm(coefficients1, coefficients2):
     f = Poly(coefficients1, x, domain="ZZ")
@@ -77,7 +85,7 @@ def test_lcm(coefficients1, coefficients2):
 
 
 @given(
-    coefficients=st.lists(st.integers()),
+    coefficients=coeffecients(),
     value=st.integers(),
 )
 def test_dispersion(coefficients, value):
